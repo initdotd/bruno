@@ -359,7 +359,17 @@ const handler = async function (argv) {
         try {
           envJsonContent = fs.readFileSync(envFilePath, 'utf8');
           const parsed = JSON.parse(envJsonContent);
-          const normalizedEnv = parseEnvironmentJson(parsed);
+          const selectionOptions = {};
+
+          // When the JSON file contains multiple environments (desktop-style global
+          // environments file), prefer selecting by --env name when provided.
+          if (env) {
+            selectionOptions.name = env;
+          }
+
+          // For wrapper objects with activeGlobalEnvironmentUid, the parser will
+          // fall back to that when no name is provided.
+          const normalizedEnv = parseEnvironmentJson(parsed, selectionOptions);
           envVars = getEnvVars(normalizedEnv);
           const rawName = normalizedEnv?.name;
           const trimmedName = typeof rawName === 'string' ? rawName.trim() : '';

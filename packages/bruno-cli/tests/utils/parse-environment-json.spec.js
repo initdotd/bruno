@@ -88,4 +88,103 @@ describe('parseEnvironmentJson', () => {
     const vars = getEnvVars(env);
     expect(vars).toEqual({ three: '3', four: '4' });
   });
+
+  it('selects environment by name from global environments wrapper', () => {
+    const input = {
+      environments: [
+        {
+          uid: 'one',
+          name: 'Local',
+          variables: [
+            { name: 'host', value: 'http://localhost:3000', type: 'text', enabled: true, secret: false }
+          ]
+        },
+        {
+          uid: 'two',
+          name: 'Prod',
+          variables: [
+            { name: 'host', value: 'https://prod.example.com', type: 'text', enabled: true, secret: false }
+          ]
+        }
+      ],
+      activeGlobalEnvironmentUid: 'two'
+    };
+
+    const env = parseEnvironmentJson(input, { name: 'Local' });
+    const vars = getEnvVars(env);
+
+    expect(vars).toEqual({ host: 'http://localhost:3000' });
+  });
+
+  it('falls back to activeGlobalEnvironmentUid when no name is provided', () => {
+    const input = {
+      environments: [
+        {
+          uid: 'one',
+          name: 'Local',
+          variables: [
+            { name: 'host', value: 'http://localhost:3000', type: 'text', enabled: true, secret: false }
+          ]
+        },
+        {
+          uid: 'two',
+          name: 'Prod',
+          variables: [
+            { name: 'host', value: 'https://prod.example.com', type: 'text', enabled: true, secret: false }
+          ]
+        }
+      ],
+      activeGlobalEnvironmentUid: 'two'
+    };
+
+    const env = parseEnvironmentJson(input);
+    const vars = getEnvVars(env);
+
+    expect(vars).toEqual({ host: 'https://prod.example.com' });
+  });
+
+  it('selects environment from array by name', () => {
+    const input = [
+      {
+        uid: 'one',
+        name: 'Local',
+        variables: [
+          { name: 'host', value: 'http://localhost:3000', type: 'text', enabled: true, secret: false }
+        ]
+      },
+      {
+        uid: 'two',
+        name: 'Prod',
+        variables: [
+          { name: 'host', value: 'https://prod.example.com', type: 'text', enabled: true, secret: false }
+        ]
+      }
+    ];
+
+    const env = parseEnvironmentJson(input, { name: 'Prod' });
+    const vars = getEnvVars(env);
+
+    expect(vars).toEqual({ host: 'https://prod.example.com' });
+  });
+
+  it('throws when name not found in global environments', () => {
+    const input = {
+      environments: [
+        { uid: 'one', name: 'Local', variables: [] }
+      ]
+    };
+
+    expect(() => parseEnvironmentJson(input, { name: 'Missing' })).toThrow(/not found in global environments JSON/i);
+  });
+
+  it('throws when multiple environments present without selector', () => {
+    const input = {
+      environments: [
+        { uid: 'one', name: 'Local', variables: [] },
+        { uid: 'two', name: 'Prod', variables: [] }
+      ]
+    };
+
+    expect(() => parseEnvironmentJson(input)).toThrow(/Ambiguous global environments JSON/i);
+  });
 });

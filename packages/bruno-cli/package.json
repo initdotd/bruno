@@ -36,7 +36,8 @@
     "api-scripting"
   ],
   "scripts": {
-    "test": "node --experimental-vm-modules $(npx which jest)"
+    "test": "node --experimental-vm-modules $(npx which jest)",
+    "test:gitbash": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js"
   },
   "files": [
     "src",
@@ -71,5 +72,8 @@
     "socks-proxy-agent": "^8.0.2",
     "xmlbuilder": "^15.1.1",
     "yargs": "^17.6.2"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0"
   }
 }
